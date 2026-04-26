@@ -278,7 +278,7 @@ void VL53L1XSensor::clearInterrupt() {
 uint16_t VL53L1XSensor::sensorId() {
    return readWord(0x010F);
 }
-
+/**
 uint16_t VL53L1XSensor::readWord(uint16_t reg_idx) {
     uint16_t buffer[2] = {0,0};
     buffer[0] = reg16(reg_idx).get();
@@ -286,13 +286,53 @@ uint16_t VL53L1XSensor::readWord(uint16_t reg_idx) {
     ESP_LOGD(TAG, "'%s' - 0x%04X = {0x%02X 0x%02X}", this->name_.c_str(), reg_idx, buffer[0], buffer[1]);
     uint16_t data = (buffer[0] << 8) + buffer[1];
     return data;
-}
+}**/
+// test of gpt
+uint16_t VL53L1XSensor::readWord(uint16_t reg_idx) {
+    uint8_t reg[2];
+    reg[0] = reg_idx >> 8;
+    reg[1] = reg_idx & 0xFF;
 
+    uint8_t data[2];
+
+    // Write register address
+    if (this->write(reg, 2) != i2c::ERROR_OK) {
+        ESP_LOGE(TAG, "'%s' - I2C write failed (readWord)", this->name_.c_str());
+        return 0;
+    }
+
+    // Read 2 bytes in ONE transaction
+    if (this->read(data, 2) != i2c::ERROR_OK) {
+        ESP_LOGE(TAG, "'%s' - I2C read failed (readWord)", this->name_.c_str());
+        return 0;
+    }
+
+    return (data[0] << 8) | data[1];
+}
+//end of test
+
+/**
 void VL53L1XSensor::writeWord(uint16_t reg_idx, uint16_t data) {
     reg16(reg_idx) = data >> 8;
     reg16(reg_idx + 1) = (uint8_t)data;
 }
+**/
 
+//test of gpt
+void VL53L1XSensor::writeWord(uint16_t reg_idx, uint16_t data) {
+    uint8_t buffer[4];
+
+    buffer[0] = reg_idx >> 8;
+    buffer[1] = reg_idx & 0xFF;
+    buffer[2] = data >> 8;
+    buffer[3] = data & 0xFF;
+
+    if (this->write(buffer, 4) != i2c::ERROR_OK) {
+        ESP_LOGE(TAG, "'%s' - I2C write failed (writeWord)", this->name_.c_str());
+    }
+}
+
+//end of gpt test
 void VL53L1XSensor::setI2CAddress(uint8_t addr) {
     reg16(0x0001) = addr;
     this->set_i2c_address(addr);

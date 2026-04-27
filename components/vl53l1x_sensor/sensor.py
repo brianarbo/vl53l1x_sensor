@@ -184,5 +184,8 @@ async def to_code(config):
     if CONF_ROI_SIZE in config:
         roi_size = config[CONF_ROI_SIZE]
         cg.add(var.set_roi_size(roi_size[CONF_X], roi_size[CONF_Y]))
-
+#from chat gpt
+    if CONF_ADDRESS in config:
+        cg.add(var.set_i2c_address(config[CONF_ADDRESS]))
+    
     await i2c.register_i2c_device(var, config)
